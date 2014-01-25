@@ -1,4 +1,4 @@
-A simple weapon dps parser.
+A simple weapon dps parser using AutoHotKey.
 
 Use: Run the script and copy items.  The script sees if it's a weapon (item at all, really) and parses the damage values.
 
