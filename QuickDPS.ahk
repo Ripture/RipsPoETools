@@ -1,6 +1,6 @@
 #NoEnv
 
-setupGui()										;create the gui window
+setupGui()											;create the gui window
 
 setupGlobals()										;initialize any global variables
 
@@ -51,8 +51,10 @@ Gui, main:+AlwaysOnTop
 
 ;alter the system tray context menu
 Menu, Tray, NoStandard
-Menu, tray, add, Minimize To System Tray, SysTrayMin
-Menu, tray, Check, Minimize To System Tray
+Menu, Tray, Add, Minimize To System Tray, SysTrayMin
+Menu, Tray, Check, Minimize To System Tray
+Menu, Tray, Add
+Menu, Tray, Add, Exit, ExitFromContext
 }
 
 setupGlobals()
@@ -69,6 +71,21 @@ setupGlobals()
 SysTrayMin:
 Menu, Tray, ToggleCheck, Minimize To System Tray	;toggle checkmark on context menu item
 minimizeToSysTray *= -1								;toggle tracking variable
+
+ifWinNotExist, PoEQuickDPS							;if we're toggling and the window doesn't exist, show it
+ {
+  ;Gui, main:show
+  Gui, main:minimize
+ }
+return
+
+
+;---ExitFromContext--
+;
+;	This runs when the user clicks the system tray context menu item "Exit"
+;---------------
+ExitFromContext:
+ExitApp
 return
 
 
