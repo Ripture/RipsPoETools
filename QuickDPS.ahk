@@ -15,7 +15,8 @@ setupGui()
 
 ;build the main window gui
 Gui, main:Add, Tab2, h340 w275, DPS|Raw Item Data
-Gui, main:Tab, DPS
+
+Gui, main:Tab, DPS									;edit the DPS tab
 Gui, main:Font, s15
 Gui, main:Add, Text, x93 y35 ,Total DPS
 Gui, main:Font, s20
@@ -41,7 +42,7 @@ Gui, main:Add, Edit, x225 y260 h25 w45 -VScroll +ReadOnly +Center vLightDPS
 Gui, main:Add, Text, x20  y305 w100 Center, Attack Speed
 Gui, main:Add, Edit, x140 y305 h25 w130 -VScroll +ReadOnly +Center vAttackSPD
 
-Gui, main:Tab, Raw
+Gui, main:Tab, Raw									;edit the Raw Item Data tab
 Gui, main:Font, s10
 Gui, main:Add, Edit, h300 w250 +ReadOnly vRaw
 
@@ -59,18 +60,29 @@ setupGlobals()
  minimizeToSysTray = 1								;toggle to minimize to system tray or not
 }
 
+
+
+;---SysTrayMin--
+;
+;	This runs when the user clicks the system tray context menu item "Minimize To System Tray"
+;---------------
 SysTrayMin:
 Menu, Tray, ToggleCheck, Minimize To System Tray	;toggle checkmark on context menu item
 minimizeToSysTray *= -1								;toggle tracking variable
 return
 
+
+;---OnClipboardChange--
+;
+;	This runs any time the contents of the clipboard change
+;---------------
 OnClipboardChange:
 IfInString, clipboard, Rarity						;only do any of this if an item is what appeared in the clipboard
 {
 GuiControl, main:, Raw, %clipboard%
-Gui, main:Restore						;if the window was minimized, bring it back up automatically
+Gui, main:Restore									;if the window was minimized, bring it back up automatically
 SetTitleMatchMode, 3
-WinActivate, Path of Exile				;since restoring gives the window focus, give focus back to PoE
+WinActivate, Path of Exile							;since restoring gives the window focus, give focus back to PoE
 
 GuiControl, main:, PhysDMG, 0
 GuiControl, main:, FireDMG, 0
@@ -96,7 +108,7 @@ LightDMGMin = 0
 
 Loop, parse, clipboard, `n
 {
- IfInString, A_LoopField, Physical Damage:		;get the line containing the weapon's physical damage
+ IfInString, A_LoopField, Physical Damage:			;get the line containing the weapon's physical damage
  { 
   StringGetPos, ColonPos, A_LoopField, :		;identify location of key separators to help pull apart the string
   StringGetPos, HyphenPos, A_LoopField, -
@@ -116,7 +128,7 @@ Loop, parse, clipboard, `n
   GuiControl, main:, PhysDMG, %PhysDMGMin% - %PhysDMGMax%
  }
 
- IfInString, A_LoopField, Fire Damage			;get the line containing the weapon's fire damage
+ IfInString, A_LoopField, Fire Damage				;get the line containing the weapon's fire damage
  { 
   IfInString, A_LoopField, Adds					;make sure this is an "adds #-# fire damage" affix and not "#% increased fire damage"
   {
@@ -135,7 +147,7 @@ Loop, parse, clipboard, `n
   }
  }
  
- IfInString, A_LoopField, Cold Damage			;get the line containing the weapon's cold damage
+ IfInString, A_LoopField, Cold Damage				;get the line containing the weapon's cold damage
  { 
   IfInString, A_LoopField, Adds					;make sure this is an "adds #-# cold damage" affix and not "#% increased cold damage"
   {
@@ -154,7 +166,7 @@ Loop, parse, clipboard, `n
   }
  }
  
- IfInString, A_LoopField, Lightning Damage		;get the line containing the weapon's lightning damage
+ IfInString, A_LoopField, Lightning Damage			;get the line containing the weapon's lightning damage
  { 
   IfInString, A_LoopField, Adds					;make sure this is an "adds #-# lightning damage" affix and not "#% increased lightning damage"
   {
@@ -173,7 +185,7 @@ Loop, parse, clipboard, `n
   }
  }
  
- IfInString, A_LoopField, Attacks per Second:	;get the line containing the weapon's attacks per second
+ IfInString, A_LoopField, Attacks per Second:		;get the line containing the weapon's attacks per second
  {
   StringGetPos, ColonPos, A_LoopField, :		;identify location of key separators to help pull apart the string
   StringGetPos, ParenthPos, A_LoopField, (
@@ -193,7 +205,7 @@ Loop, parse, clipboard, `n
  }
 }
 
-SetFormat, Float, 1								;set precision for floating point
+SetFormat, Float, 1									;set precision for floating point
 PhysDPS := ((PhysDMGMin + PhysDMGMax) / 2 ) * AttackSPD
 FireDPS := ((FireDMGMin + FireDMGMax) / 2 ) * AttackSPD
 ColdDPS := ((ColdDMGMin + ColdDMGMax) / 2 ) * AttackSPD
@@ -210,10 +222,20 @@ GuiControl, main:, TotalDPS, %TotalDPS%
 }
 return
 
+
+;---mainGuiClose--
+;
+;	This runs whenever the main GUI window is closed.
+;---------------
 mainGuiClose:										;exit the script when the gui is closed
 ExitApp
 return
 
+
+;---mainGuiSize--
+;
+;	This runs whenever the main GUI window is resized, minimized, maximized or restored
+;---------------
 mainGuiSize:									
 if((A_EventInfo = 1) && (minimizeToSysTray = 1))	;close the gui window when minimized so it doesn't take up task bar space
  Gui, main:hide
