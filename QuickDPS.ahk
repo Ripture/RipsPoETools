@@ -2,13 +2,18 @@
 
 setupGui()											;create the gui window
 
-Gui, main:Show, h355 w295, PoEQuickDPS	;display the gui window
+setupGlobals()										;initialize any global variables
+
+Gui, main:Show, x400 y450 h355 w295, PoEQuickDPS	;display the gui window
 
 return
 
 
+
 setupGui()
 {global
+
+;build the main window gui
 Gui, main:Add, Tab2, h340 w275, DPS|Raw Item Data
 Gui, main:Tab, DPS
 Gui, main:Font, s15
@@ -41,12 +46,26 @@ Gui, main:Font, s10
 Gui, main:Add, Edit, h300 w250 +ReadOnly vRaw
 
 Gui, main:+AlwaysOnTop
+
+
+;alter the system tray context menu
+Menu, Tray, NoStandard
+Menu, tray, add, Minimize To System Tray, SysTrayMin
+Menu, tray, Check, Minimize To System Tray
 }
 
+setupGlobals()
+{global
+ minimizeToSysTray = 1								;toggle to minimize to system tray or not
+}
+
+SysTrayMin:
+Menu, Tray, ToggleCheck, Minimize To System Tray	;toggle checkmark on context menu item
+minimizeToSysTray *= -1								;toggle tracking variable
+return
 
 OnClipboardChange:
-
-IfInString, clipboard, Rarity			;only do any of this if an item is what appeared in the clipboard
+IfInString, clipboard, Rarity						;only do any of this if an item is what appeared in the clipboard
 {
 GuiControl, main:, Raw, %clipboard%
 Gui, main:Restore						;if the window was minimized, bring it back up automatically
@@ -191,6 +210,11 @@ GuiControl, main:, TotalDPS, %TotalDPS%
 }
 return
 
-mainGuiClose:									;exit the script when the gui is closed
+mainGuiClose:										;exit the script when the gui is closed
 ExitApp
+return
+
+mainGuiSize:									
+if((A_EventInfo = 1) && (minimizeToSysTray = 1))	;close the gui window when minimized so it doesn't take up task bar space
+ Gui, main:hide
 return
