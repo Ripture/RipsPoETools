@@ -4,7 +4,7 @@ setupGui()											;create the gui window
 
 setupGlobals()										;initialize any global variables
 
-Gui, main:Show, x400 y450 h355 w295, PoEQuickDPS	;display the gui window
+Gui, main:Show, h355 w295, PoEQuickDPS	;display the gui window
 
 return
 
