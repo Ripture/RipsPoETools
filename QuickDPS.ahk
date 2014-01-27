@@ -1,6 +1,6 @@
 #NoEnv
 
-setupGui()											;create the gui window
+setupGui()										;create the gui window
 
 setupGlobals()										;initialize any global variables
 
