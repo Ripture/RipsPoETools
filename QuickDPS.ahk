@@ -18,10 +18,10 @@ setupGui()
 
 ;-----
 ;-- build the main window gui
-Gui, main:Add, Tab2, h340 w275 vTabb, Exp/Hour Calc|Weapon DPS|Raw Copied Item Data
+Gui, main:Add, Tab2, h340 w275 vTabb, Exp/Min Calc|Weapon DPS|Raw Copied Item Data
 
 ;------
-;Exp/Hour Calc Tab
+;Exp/Min Calc Tab
 Gui, main:Tab, Exp
 Gui, main:Add, Text, x45 y72, Initial Experience
 Gui, main:Add, Edit, x135 y70 w100 vInitialExp gInitialExp
@@ -29,8 +29,8 @@ Gui, main:Add, Text, x45 y102, Final Experience
 Gui, main:Add, Edit, x135 y100 w100 vFinalExp gFinalExp
 Gui, main:Add, Text, x45 y172, Run Time (mins)
 Gui, main:Add, Edit, x135 y170 w100 vRunTime
-Gui, main:Add, Text, x45 y202, Exp Per Hour
-Gui, main:Add, Edit, x135 y200 w100 vExpPerHour
+Gui, main:Add, Text, x45 y202, Exp Per Min
+Gui, main:Add, Edit, x135 y200 w100 vExpPerMin
 Gui, main:Add, Button, x35 y130 w140 h25 gStartExp vStartButton, Start
 Gui, main:Add, Button, x185 y130 w65 h25 gNextExp vNextButton, Next
 
@@ -91,13 +91,13 @@ Menu, Tray, Add, Exit, SysTrayExit
 setupGlobals()
 {global
  minimizeToSysTray = 1								;toggle to minimize to system tray or not
- expTimerStarted := false							;on/off tracking variable for exp/hour calc
+ expTimerStarted := false							;on/off tracking variable for exp/min calc
 }
 ;=--
 
 
 ; ------
-; - Exp/Hour Calc Tab Functions/Labels
+; - Exp/min Calc Tab Functions/Labels
 ; -
 ; - Function: InitialExp runs every time the contents of the edit box "Initial Experience" are change
 ; - 		  FinalExp runs every time the contents of the edit box "Final Experience are changed
@@ -123,12 +123,11 @@ StartExp:
   elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
   roundedTime := Round(elapsedTime, 2)					;round the elapsed time in seconds down to 2 decimal places
   GuiControl, main:, RunTime, %roundedTime%				;put the elapsed time in minutes in the proper edit box
-  
-  elapsedTime := elapsedTime / 60						;convert time to hours now 
+
   totalExp := FinalExp - InitialExp						;calculate the experience difference
-  ExpPerHour := totalExp / elapsedTime					;get the exp per hour value
-  roundedExpPerHour := Round(ExpPerHour, 0)				;round the exp per hour value to nearest integer 
-  GuiControl, main:, ExpPerHour, %roundedExpPerHour%	;put the exp per hour value in the proper edit box
+  ExpPerMin := totalExp / elapsedTime					;get the exp per min value
+  roundedExpPerMin := Round(ExpPerMin, 0)				;round the exp per min value to nearest integer 
+  GuiControl, main:, ExpPerMin, %roundedExpPerMin%	;put the exp per min value in the proper edit box
   
   expTimerStarted := false								;set the tracking variable to false for the timer
  }
@@ -144,7 +143,7 @@ NextExp:
 {
  GuiControl, main:, InitialExp, %FinalExp%
  GuiControl, main:, FinalExp,
- GuiControl, main:, ExpPerHour,
+ GuiControl, main:, ExpPerMin,
  GuiControl, main:, RunTime,
  return
 }
