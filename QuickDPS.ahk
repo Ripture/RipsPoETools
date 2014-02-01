@@ -9,13 +9,19 @@ Gui, main:Show, h355 w295, PoE Tools 0.1			;display the gui window
 return
 
 
-
+; ------
+; - Create The GUI
+; ------
+;--=
 setupGui()
 {global
 
-;build the main window gui
+;-----
+;-- build the main window gui
 Gui, main:Add, Tab2, h340 w275 vTabb, Exp/Hour Calc|Weapon DPS|Raw Copied Item Data
 
+;------
+;Exp/Hour Calc Tab
 Gui, main:Tab, Exp
 Gui, main:Add, Text, x45 y72, Initial Experience
 Gui, main:Add, Edit, x135 y70 w100 vInitialExp gInitialExp
@@ -28,7 +34,9 @@ Gui, main:Add, Edit, x135 y200 w100 vExpPerHour
 Gui, main:Add, Button, x35 y130 w140 h25 gStartExp vStartButton, Start
 Gui, main:Add, Button, x185 y130 w65 h25 gResetExp vResetButton, Reset
 
-Gui, main:Tab, Weapon DPS								;edit the DPS tab
+;------
+;Weapon DPS Tab
+Gui, main:Tab, Weapon DPS
 Gui, main:Font, s15
 Gui, main:Add, Text, x93 y45 ,Total DPS
 Gui, main:Font, s20
@@ -54,29 +62,49 @@ Gui, main:Add, Edit, x225 y260 h25 w45 -VScroll +ReadOnly +Center vLightDPS
 Gui, main:Add, Text, x20  y305 w100 Center, Attack Speed
 Gui, main:Add, Edit, x140 y305 h25 w130 -VScroll +ReadOnly +Center vAttackSPD
 
-Gui, main:Tab, Raw									;edit the Raw Item Data tab
+;------
+;Raw Item Data Tab
+Gui, main:Tab, Raw
 Gui, main:Font, s10
 Gui, main:Add, Edit, h300 w250 +ReadOnly vRaw
 
+;------
+;Alter Main Window Behavior
 Gui, main:+AlwaysOnTop
 
 
-;alter the system tray context menu
+;------
+;Alter System Tray Behavior
 Menu, Tray, NoStandard
 Menu, Tray, Add, Minimize To System Tray, SysTrayMin
 Menu, Tray, Check, Minimize To System Tray
 Menu, Tray, Add
-Menu, Tray, Add, Exit, ExitFromContext
+Menu, Tray, Add, Exit, SysTrayExit
 }
+;=--
 
+
+; ------
+; - Initialize Globals
+; ------
+;--=
 setupGlobals()
 {global
  minimizeToSysTray = 1								;toggle to minimize to system tray or not
  expTimerStarted := false							;on/off tracking variable for exp/hour calc
 }
+;=--
 
 
-
+; ------
+; - Exp/Hour Calc Tab Functions/Labels
+; -
+; - Function: InitialExp runs every time the contents of the edit box "Initial Experience" are change
+; - 		  FinalExp runs every time the contents of the edit box "Final Experience are changed
+; -			  StartExp runs every time the button labeled "Start" or "Stop" is clicked
+; -			  ResetExp runs every time the button labeled "Reset" is clicked
+; ------
+;--= 
 InitialExp:
 {
  GuiControlGet, InitialExp
@@ -87,7 +115,6 @@ FinalExp:
  GuiControlGet, FinalExp
  return
 }
-
 StartExp:
 {
  if(expTimerStarted)
@@ -117,12 +144,16 @@ ResetExp:
  GuiControl, main:, ExpPerHour,
  GuiControl, main:, RunTime,
 }
+;=--
 
 
-;---SysTrayMin--
-;
-;	This runs when the user clicks the system tray context menu item "Minimize To System Tray"
-;---------------
+; ------
+; - System Tray Functions/Labels
+; -
+; - Function: SysTrayMin runs every time "Minimize To System Tray" is clicked
+; -			  SysTrayExit runs every time "Exit" is clicked
+; ------
+;--= 
 SysTrayMin:
 Menu, Tray, ToggleCheck, Minimize To System Tray	;toggle checkmark on context menu item
 minimizeToSysTray *= -1								;toggle tracking variable
@@ -134,20 +165,18 @@ ifWinNotExist, PoEQuickDPS							;if we're toggling and the window doesn't exist
  }
 return
 
-
-;---ExitFromContext--
-;
-;	This runs when the user clicks the system tray context menu item "Exit"
-;---------------
-ExitFromContext:
+SysTrayExit:
 ExitApp
 return
+;=--
 
 
-;---OnClipboardChange--
-;
-;	This runs any time the contents of the clipboard change
-;---------------
+; ------
+; - OnClipboardChange Function
+; -
+; - Function: Runs every time the data in the clipboard changes
+; ------
+;--=
 OnClipboardChange:
 IfInString, clipboard, Rarity						;only do any of this if an item is what appeared in the clipboard
 {
@@ -294,22 +323,29 @@ TotalDPS := PhysDPS + FireDPS + ColdDPS + LightDPS
 GuiControl, main:, TotalDPS, %TotalDPS%
 }
 return
+;=--
 
 
-;---mainGuiClose--
-;
-;	This runs whenever the main GUI window is closed.
-;---------------
+; ------
+; - mainGuiClose Function
+; - 
+; - Function: Runs every time this GUI is closed 
+; ------
+;--=
 mainGuiClose:										;exit the script when the gui is closed
 ExitApp
 return
+;=--
 
 
-;---mainGuiSize--
-;
-;	This runs whenever the main GUI window is resized, minimized, maximized or restored
-;---------------
+; ------
+; - mainGuiSize Function
+; -
+; - Function: Runs every time this GUI is resized, minimized, maximized or restored
+; ------
+;--=
 mainGuiSize:									
 if((A_EventInfo = 1) && (minimizeToSysTray = 1))	;close the gui window when minimized so it doesn't take up task bar space
  Gui, main:hide
 return
+;=--
