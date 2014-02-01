@@ -4,7 +4,7 @@ setupGui()											;create the gui window
 
 setupGlobals()										;initialize any global variables
 
-Gui, main:Show, h355 w295, PoEQuickDPS	;display the gui window
+Gui, main:Show, h355 w295, PoE Tools 0.1			;display the gui window
 
 return
 
@@ -14,15 +14,27 @@ setupGui()
 {global
 
 ;build the main window gui
-Gui, main:Add, Tab2, h340 w275, DPS|Raw Item Data
+Gui, main:Add, Tab2, h340 w275 vTabb, Exp/Hour Calc|Weapon DPS|Raw Copied Item Data
 
-Gui, main:Tab, DPS									;edit the DPS tab
+Gui, main:Tab, Exp
+Gui, main:Add, Text, x45 y72, Initial Experience
+Gui, main:Add, Edit, x135 y70 w100 vInitialExp gInitialExp
+Gui, main:Add, Text, x45 y102, Final Experience
+Gui, main:Add, Edit, x135 y100 w100 vFinalExp gFinalExp
+Gui, main:Add, Text, x45 y172, Run Time (mins)
+Gui, main:Add, Edit, x135 y170 w100 vRunTime
+Gui, main:Add, Text, x45 y202, Exp Per Hour
+Gui, main:Add, Edit, x135 y200 w100 vExpPerHour
+Gui, main:Add, Button, x35 y130 w140 h25 gStartExp vStartButton, Start
+Gui, main:Add, Button, x185 y130 w65 h25 gResetExp vResetButton, Reset
+
+Gui, main:Tab, Weapon DPS								;edit the DPS tab
 Gui, main:Font, s15
-Gui, main:Add, Text, x93 y35 ,Total DPS
+Gui, main:Add, Text, x93 y45 ,Total DPS
 Gui, main:Font, s20
-Gui, main:Add, Edit, x90 y65 h40  w100 -VScroll +ReadOnly +Center vTotalDPS
+Gui, main:Add, Edit, x90 y75 h40  w100 -VScroll +ReadOnly +Center vTotalDPS
 Gui, main:Font, s10
-Gui, main:Add, Text, x17 y110, _____________________________________
+Gui, main:Add, Text, x17 y115, _____________________________________
 Gui, main:Font, s12
 Gui, main:Add, Text, x150 y145, Damage
 Gui, main:Add, Text, x230 y145, DPS
@@ -60,8 +72,51 @@ Menu, Tray, Add, Exit, ExitFromContext
 setupGlobals()
 {global
  minimizeToSysTray = 1								;toggle to minimize to system tray or not
+ expTimerStarted := false							;on/off tracking variable for exp/hour calc
 }
 
+
+
+InitialExp:
+{
+ GuiControlGet, InitialExp
+ return
+}
+FinalExp:
+{
+ GuiControlGet, FinalExp
+ return
+}
+
+StartExp:
+{
+ if(expTimerStarted)
+ {
+  GuiControl, main:, StartButton, Start
+  elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
+  GuiControl, main:, RunTime, %elapsedTime%
+  elapsedTime := elapsedTime / 60						;convert time to hours now 
+  totalExp := FinalExp - InitialExp
+  SetFormat, float, 1.1
+  ExpPerHour := totalExp / elapsedTime
+  GuiControl, main:, ExpPerHour, %ExpPerHour%
+  expTimerStarted := false
+ }
+ else
+ {
+  GuiControl, main:, StartButton, Stop
+  startTime := A_TickCount
+  expTimerStarted := true
+ }
+ return
+}
+ResetExp:
+{
+ GuiControl, main:, InitialExp,
+ GuiControl, main:, FinalExp,
+ GuiControl, main:, ExpPerHour,
+ GuiControl, main:, RunTime,
+}
 
 
 ;---SysTrayMin--
@@ -98,6 +153,7 @@ IfInString, clipboard, Rarity						;only do any of this if an item is what appea
 {
 GuiControl, main:, Raw, %clipboard%
 Gui, main:Restore									;if the window was minimized, bring it back up automatically
+GuiControl, main:Choose, Tabb, 2					;set the tab to the weapon dps tab
 SetTitleMatchMode, 3
 WinActivate, Path of Exile							;since restoring gives the window focus, give focus back to PoE
 
