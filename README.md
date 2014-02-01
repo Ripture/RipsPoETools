@@ -10,7 +10,7 @@ Using The Weapon DPS Parser:
  - If the GUI is minimized to the system tray or task bar, it will restore and focus to the weapon dps tab automatically.
  
 Using The Exp/Hour Calculator:
-  - Input initial experience and hit Start.  Input final experience and hit stop.
-
+ - Input initial experience and hit Start.  Input final experience and hit stop.
+ - The "Next" button will clear all boxes and move the final experience into initial experience box.  This makes setting up next run quick and easy.
 
 The GUI window defaults to minimizing to the system tray.  You can toggle this off via the context menu on the system tray icon.

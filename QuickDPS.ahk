@@ -32,7 +32,7 @@ Gui, main:Add, Edit, x135 y170 w100 vRunTime
 Gui, main:Add, Text, x45 y202, Exp Per Hour
 Gui, main:Add, Edit, x135 y200 w100 vExpPerHour
 Gui, main:Add, Button, x35 y130 w140 h25 gStartExp vStartButton, Start
-Gui, main:Add, Button, x185 y130 w65 h25 gResetExp vResetButton, Reset
+Gui, main:Add, Button, x185 y130 w65 h25 gNextExp vNextButton, Next
 
 ;------
 ;Weapon DPS Tab
@@ -101,8 +101,8 @@ setupGlobals()
 ; -
 ; - Function: InitialExp runs every time the contents of the edit box "Initial Experience" are change
 ; - 		  FinalExp runs every time the contents of the edit box "Final Experience are changed
-; -			  StartExp runs every time the button labeled "Start" or "Stop" is clicked
-; -			  ResetExp runs every time the button labeled "Reset" is clicked
+; -			  StartExp runs every time the button labeled "Start" is clicked
+; -			  NextExp runs every time the button labeled "Reset" is clicked
 ; ------
 ;--= 
 InitialExp:
@@ -119,30 +119,34 @@ StartExp:
 {
  if(expTimerStarted)
  {
-  GuiControl, main:, StartButton, Start
+  GuiControl, main:, StartButton, Start					;rename the Start button to "Start"
   elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
-  GuiControl, main:, RunTime, %elapsedTime%
+  roundedTime := Round(elapsedTime, 2)					;round the elapsed time in seconds down to 2 decimal places
+  GuiControl, main:, RunTime, %roundedTime%				;put the elapsed time in minutes in the proper edit box
+  
   elapsedTime := elapsedTime / 60						;convert time to hours now 
-  totalExp := FinalExp - InitialExp
-  SetFormat, float, 1.1
-  ExpPerHour := totalExp / elapsedTime
-  GuiControl, main:, ExpPerHour, %ExpPerHour%
-  expTimerStarted := false
+  totalExp := FinalExp - InitialExp						;calculate the experience difference
+  ExpPerHour := totalExp / elapsedTime					;get the exp per hour value
+  roundedExpPerHour := Round(ExpPerHour, 0)				;round the exp per hour value to nearest integer 
+  GuiControl, main:, ExpPerHour, %roundedExpPerHour%	;put the exp per hour value in the proper edit box
+  
+  expTimerStarted := false								;set the tracking variable to false for the timer
  }
  else
  {
-  GuiControl, main:, StartButton, Stop
+  GuiControl, main:, StartButton, Running... Click To Stop
   startTime := A_TickCount
   expTimerStarted := true
  }
  return
 }
-ResetExp:
+NextExp:
 {
- GuiControl, main:, InitialExp,
+ GuiControl, main:, InitialExp, %FinalExp%
  GuiControl, main:, FinalExp,
  GuiControl, main:, ExpPerHour,
  GuiControl, main:, RunTime,
+ return
 }
 ;=--
 
