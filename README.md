@@ -11,3 +11,8 @@ Using The Weapon DPS Parser:
  
 
  You can adjust the tooltip timeout values from the system tray icon menu.
+ 
+ 
+ 
+Example of DPS ToolTips
+![Imgur](http://i.imgur.com/2VIqWKF.png)
