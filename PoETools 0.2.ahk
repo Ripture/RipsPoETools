@@ -1,6 +1,7 @@
 #NoEnv
 
 setupGlobals()
+setupGUIs()
 setupSysTray()
 return
 
@@ -14,8 +15,95 @@ return
 setupGlobals()
 {global
 
-TTTimeout := 2500
+expTimerStarted := false			;variable tracking exp timer state
+TTTimeout := 2500					;tooltip timeout value in milliseconds (ms)
 }
+;=--
+
+
+; ------
+; - Setup GUIs
+; ------
+;--=
+setupGUIs()
+{global
+
+Gui, expcalc:Font, s8, Courier New
+Gui, expcalc:Add, Text, x0  y34 w320 h15 +Center, ____________________________________________
+Gui, expcalc:Add, Text, x5  y2  w80 +Center, Initial Exp
+Gui, expcalc:Add, Edit, x5  y20 w80 h20 vInitialExp gInitialExp
+Gui, expcalc:Add, Text, x88 y22 , -
+Gui, expcalc:Add, Text, x98 y2  w80 +Center, Final Exp
+Gui, expcalc:Add, Edit, x98 y20 w80 h20 vFinalExp gFinalExp
+
+Gui, expcalc:Add, Button, x185 y19 w85 h22 vStartExp gStartExp, Start Timer
+Gui, expcalc:Add, Button, x275 y19 w40 h22 vNextExp  gNextExp, Next
+Gui, expcalc:Add, Button, x300 y0 w15 h16 vExitExp  gExitExp, X
+
+Gui, expcalc:Add, Text, x5  y57 w105 +Center, Run Time (mins)
+Gui, expcalc:Add, Edit, x111 y55 w50 h20 vRunTime
+
+Gui, expcalc:Add, Text, x176 y57 w60 +Center, Exp/Min
+Gui, expcalc:Add, Edit, x234 y55 w80 h20 vExpPerMin
+Gui, expcalc:+AlwaysOnTop
+}
+;=--
+
+
+; ------
+; - Exp/Min GUI Functions/Labels
+; -
+; - Function: InitialExp runs every time the contents of the edit box "Initial Experience" are changed
+; - 		  FinalExp runs every time the contents of the edit box "Final Experience" are changed
+; -			  StartExp runs every time the button labeled "Start Timer" is clicked
+; -			  NextExp runs every time the button labeled "Next" is clicked
+; ------
+;--= 
+InitialExp:
+{
+ GuiControlGet, InitialExp
+ return
+}
+FinalExp:
+{
+ GuiControlGet, FinalExp
+ return
+}
+StartExp:
+{
+ if(expTimerStarted)
+ {
+  GuiControl, expcalc:, StartExp, Start	Timer			;rename the Start button to "Start"
+  elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
+  roundedTime := Round(elapsedTime, 2)					;round the elapsed time in seconds down to 2 decimal places
+  GuiControl, expcalc:, RunTime, %roundedTime%			;put the elapsed time in minutes in the proper edit box
+
+  totalExp := FinalExp - InitialExp						;calculate the experience difference
+  ExpPerMin := totalExp / elapsedTime					;get the exp per min value
+  roundedExpPerMin := Round(ExpPerMin, 0)				;round the exp per min value to nearest integer 
+  GuiControl, expcalc:, ExpPerMin, %roundedExpPerMin%	;put the exp per min value in the proper edit box
+  
+  expTimerStarted := false								;set the tracking variable to false for the timer
+ }
+ else
+ {
+  GuiControl, expcalc:, StartExp, Stop Timer
+  startTime := A_TickCount
+  expTimerStarted := true
+ }
+ return
+}
+NextExp:
+{
+ GuiControl, expcalc:, InitialExp, %FinalExp%
+ GuiControl, expcalc:, FinalExp,
+ GuiControl, expcalc:, ExpPerMin,
+ GuiControl, expcalc:, RunTime,
+ return
+}
+ExitExp:
+Gui, expcalc:hide
+return
 ;=--
 
 
@@ -33,6 +121,8 @@ Menu, TTTimeoutMenu, Add, 1000ms, TTTimeoutChange1000
 Menu, TTTimeoutMenu, Add, Custom, TTTimeoutChange
 Menu, Tray, Add, Change Tooltip Timeout, :TTTimeoutMenu
 Menu, Tray, Add
+Menu, Tray, Add, Open Exp/Min Calculator, ExpMinCalc
+Menu, Tray, Add
 Menu, Tray, Add, Exit, SysTrayExit
 
 Menu, TTTimeoutMenu, Check, 2500ms			;check 2500ms timeout by default
@@ -48,33 +138,36 @@ Menu, TTTimeoutMenu, Check, 2500ms			;check 2500ms timeout by default
 ; -			  SysTrayExit exits the script when user clicks "exit"
 ; ------
 ;--= 
-TTTimeoutChange5000:
+TTTimeoutChange5000:					;user clicks "5000ms"
 TTTimeout := 5000
 Menu, TTTimeoutMenu, Check, 5000ms
 Menu, TTTimeoutMenu, Uncheck, 2500ms
 Menu, TTTimeoutMenu, Uncheck, 1000ms
 Menu, TTTimeoutMenu, Uncheck, Custom
 return
-TTTimeoutChange2500:
+
+TTTimeoutChange2500:					;user clicks "2500ms"
 TTTimeout := 2500
 Menu, TTTimeoutMenu, Uncheck, 5000ms
 Menu, TTTimeoutMenu, Check, 2500ms
 Menu, TTTimeoutMenu, Uncheck, 1000ms
 Menu, TTTimeoutMenu, Uncheck, Custom
 return
-TTTimeoutChange1000:
+
+TTTimeoutChange1000:					;user clicks "1000ms"
 TTTimeout := 1000
 Menu, TTTimeoutMenu, Uncheck, 5000ms
 Menu, TTTimeoutMenu, Uncheck, 2500ms
 Menu, TTTimeoutMenu, Check, 1000ms
 Menu, TTTimeoutMenu, Uncheck, Custom
 return
-TTTimeoutChange:
+
+TTTimeoutChange:						;user clicks "Custom"
 
 TryAgain:
 InputBox, TTTimeout, Change Tooltip Timeout, Input the number of milliseconds (ms) to display the tooltip for.`n(0-10000), , , , , , , , 2500
 
-if(TTTimeout < 0 || TTTimeout > 10000)			;if the number is nonsensical 
+if(TTTimeout < 0 || TTTimeout > 10000)	;if the number is nonsensical, ask again
 	Goto, TryAgain
 Menu, TTTimeoutMenu, Uncheck, 5000ms
 Menu, TTTimeoutMenu, Uncheck, 2500ms
@@ -82,7 +175,18 @@ Menu, TTTimeoutMenu, Uncheck, 1000ms
 Menu, TTTimeoutMenu, Check, Custom
 return
 
-SysTrayExit:
+
+ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
+;get the center of the screen
+midx := (A_ScreenWidth - 320) / 2
+
+Gui, expcalc:Show, , Exp/Min Calculator				;show the window for an instant so we can modify it
+WinSet, Style, -0x840000, Exp/Min Calculator		;remove the borders so it looks neat
+WinMove, Exp/Min Calculator, , % midx, 2, 327, 88	;resize and position the window at top center
+return
+
+
+SysTrayExit:							;user clicks "Exit"
 ExitApp
 return
 ;=--
