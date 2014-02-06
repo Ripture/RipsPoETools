@@ -28,6 +28,8 @@ TTTimeout := 2500					;tooltip timeout value in milliseconds (ms)
 setupGUIs()
 {global
 
+;-----
+;- Experience Calc GUI
 Gui, expcalc:Font, s8, Courier New
 Gui, expcalc:Add, Text, x0  y34 w320 h15 +Center, ____________________________________________
 Gui, expcalc:Add, Text, x5  y2  w80 +Center, Initial Exp
@@ -46,6 +48,11 @@ Gui, expcalc:Add, Edit, x111 y55 w50 h20 vRunTime
 Gui, expcalc:Add, Text, x176 y57 w60 +Center, Exp/Min
 Gui, expcalc:Add, Edit, x234 y55 w80 h20 vExpPerMin
 Gui, expcalc:+AlwaysOnTop
+
+;-----
+;- Experience Calc Timer Stop Button GUI
+Gui, expstop:Add, Button, x0 y0 w100 h22 gStopExp, Stop Timer
+Gui, expstop:+AlwaysOnTop
 }
 ;=--
 
@@ -67,30 +74,25 @@ InitialExp:
 FinalExp:
 {
  GuiControlGet, FinalExp
+ 
+ totalExp := FinalExp - InitialExp						;calculate the experience difference
+ ExpPerMin := totalExp / elapsedTime					;get the exp per min value
+ roundedExpPerMin := Round(ExpPerMin, 0)				;round the exp per min value to nearest integer 
+ GuiControl, expcalc:, ExpPerMin, %roundedExpPerMin%	;put the exp per min value in the proper edit box
+  
  return
 }
 StartExp:
 {
- if(expTimerStarted)
- {
-  GuiControl, expcalc:, StartExp, Start	Timer			;rename the Start button to "Start"
-  elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
-  roundedTime := Round(elapsedTime, 2)					;round the elapsed time in seconds down to 2 decimal places
-  GuiControl, expcalc:, RunTime, %roundedTime%			;put the elapsed time in minutes in the proper edit box
-
-  totalExp := FinalExp - InitialExp						;calculate the experience difference
-  ExpPerMin := totalExp / elapsedTime					;get the exp per min value
-  roundedExpPerMin := Round(ExpPerMin, 0)				;round the exp per min value to nearest integer 
-  GuiControl, expcalc:, ExpPerMin, %roundedExpPerMin%	;put the exp per min value in the proper edit box
+ Gui, expcalc:hide										;hide the exp calc gui
   
-  expTimerStarted := false								;set the tracking variable to false for the timer
- }
- else
- {
-  GuiControl, expcalc:, StartExp, Stop Timer
-  startTime := A_TickCount
-  expTimerStarted := true
- }
+ midx := (A_ScreenWidth - 107) / 2						;get center screen
+ Gui, expstop:Show, , Exp Timer Stop Button				;show the window for an instant so we can modify it
+ WinSet, Style, -0x840000, Exp Timer Stop Button		;remove the borders so it looks neat
+ WinMove, Exp Timer Stop Button, , % midx, 2, 107, 29	;resize and position the window at top center
+  
+ startTime := A_TickCount
+
  return
 }
 NextExp:
@@ -99,6 +101,17 @@ NextExp:
  GuiControl, expcalc:, FinalExp,
  GuiControl, expcalc:, ExpPerMin,
  GuiControl, expcalc:, RunTime,
+ return
+}
+StopExp:
+{
+ Gui, expstop:hide
+ Gui, expcalc:show
+ 
+ elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
+ roundedTime := Round(elapsedTime, 2)					;round the elapsed time in seconds down to 2 decimal places
+ GuiControl, expcalc:, RunTime, %roundedTime%			;put the elapsed time in minutes in the proper edit box
+
  return
 }
 ExitExp:
