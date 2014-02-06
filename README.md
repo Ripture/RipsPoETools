@@ -10,9 +10,13 @@ Using The Weapon DPS Parser:
 	itemized and overall dps value within a tooltip displayed at the mouse cursor.
  
 
- You can adjust the tooltip timeout values from the system tray icon menu.
+You can adjust the tooltip timeout values from the system tray icon menu.
  
  
  
 Example of DPS ToolTips
-![Imgur](http://i.imgur.com/2VIqWKF.png)
+![Imgur](http://i.imgur.com/2VIqWKF)
+
+
+Example of Exp/Min Calculator
+![Imgur](http://i.imgur.com/MRIEeGp)
