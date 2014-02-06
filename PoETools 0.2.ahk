@@ -165,9 +165,9 @@ return
 TTTimeoutChange:						;user clicks "Custom"
 
 TryAgain:
-InputBox, TTTimeout, Change Tooltip Timeout, Input the number of milliseconds (ms) to display the tooltip for.`n(0-10000), , , , , , , , 2500
+InputBox, TTTimeout, Change Tooltip Timeout, Input the number of milliseconds (ms) to display the tooltip for.`n(0-100000), , , , , , , , 2500
 
-if(TTTimeout < 0 || TTTimeout > 10000)	;if the number is nonsensical, ask again
+if(TTTimeout < 0 || TTTimeout > 100000)	;if the number is nonsensical, ask again
 	Goto, TryAgain
 Menu, TTTimeoutMenu, Uncheck, 5000ms
 Menu, TTTimeoutMenu, Uncheck, 2500ms
