@@ -14,6 +14,7 @@ return
 setupGlobals()
 {global
 
+ExpHistoryShowing := false			;track whether or not the history is showingu
 TTTimeout := 2500					;tooltip timeout value in milliseconds (ms)
 }
 ;=--
@@ -39,18 +40,40 @@ Gui, expcalc:Add, Edit, x98 y20 w80 h20 vFinalExp gFinalExp
 Gui, expcalc:Add, Button, x185 y19 w85 h22 vStartExp gStartExp, Start Timer
 Gui, expcalc:Add, Button, x275 y19 w40 h22 vNextExp  gNextExp, Next
 Gui, expcalc:Add, Button, x300 y0 w15 h16 vExitExp  gExitExp, X
+Gui, expcalc:Add, Button, x138 y78 w50 h10 gHistoryExp
 
-Gui, expcalc:Add, Text, x5  y57 w105 +Center, Run Time (mins)
-Gui, expcalc:Add, Edit, x111 y55 w50 h20 vRunTime
+Loop 6					;create this many *total* run entries (current + history)
+{
+ if(A_Index = 1)		;if this is the first one, create it in the initial spot
+ {
+  yedit := 55
+  ytext := 57
+ }
+ else if (A_Index = 2)	;the second is 50 units below that 
+ {
+  yedit += 36
+  ytext += 36
+ }
+ else					;the rest are in 50 unit increments
+ {
+  yedit += 25
+  ytext += 25
+ }
+ 
+ Gui, expcalc:Add, Text, x5  y%ytext% w105 +Center, Run Time (mins)
+ Gui, expcalc:Add, Edit, x111 y%yedit% w50 h20 vRunTime%A_Index%
 
-Gui, expcalc:Add, Text, x176 y57 w60 +Center, Exp/Min
-Gui, expcalc:Add, Edit, x234 y55 w80 h20 vExpPerMin
+ Gui, expcalc:Add, Text, x176 y%ytext% w60 +Center, Exp/Min
+ Gui, expcalc:Add, Edit, x234 y%yedit% w80 h20 vExpPerMin%A_Index%
+}
+
 Gui, expcalc:+AlwaysOnTop
 
 ;-----
 ;- Experience Calc Timer Stop Button GUI
 Gui, expstop:Add, Button, x0 y0 w100 h22 gStopExp, Stop Timer
 Gui, expstop:+AlwaysOnTop
+
 }
 ;=--
 
@@ -84,7 +107,7 @@ Menu, TTTimeoutMenu, Check, 2500ms			;check 2500ms timeout by default
 ; - Function: InitialExp pushes the contents of the edit box to it's variable every time the contents change
 ; - 		  FinalExp pushes the contents of the edit box to it's variable every time the contents change
 ; -			  StartExp saves a starting counter value, hides the gui and shows the "Stop Timer" button
-; -			  NextExp clears out all edit fields and moves the value in Final Experience to Initial Experience
+; -			  NextExp clears out all edit fields and moves the value in Final Experience to Initial Experience.  It also stores the result in history.
 ; - 		  StopExp hides the stop button, shows the exp calc GUI, gets a final counter value and calculates the difference
 ; ------
 ;--= 
@@ -97,11 +120,14 @@ FinalExp:
 {
  GuiControlGet, FinalExp
  
- totalExp := FinalExp - InitialExp						;calculate the experience difference
- ExpPerMin := totalExp / elapsedTime					;get the exp per min value
- roundedExpPerMin := Round(ExpPerMin, 0)				;round the exp per min value to nearest integer 
- GuiControl, expcalc:, ExpPerMin, %roundedExpPerMin%	;put the exp per min value in the proper edit box
-  
+ if(FinalExp > 0)										;if there is something to calculate, do it
+ {
+  totalExp := FinalExp - InitialExp						;calculate the experience difference
+  ExpPerMin := totalExp / elapsedTime					;get the exp per min value
+  roundedExpPerMin := Round(ExpPerMin, 0)				;round the exp per min value to nearest integer 
+  GuiControl, expcalc:, ExpPerMin1, %roundedExpPerMin%	;put the exp per min value in the proper edit box
+ }
+ 
  return
 }
 StartExp:
@@ -121,8 +147,18 @@ NextExp:
 {
  GuiControl, expcalc:, InitialExp, %FinalExp%
  GuiControl, expcalc:, FinalExp,
- GuiControl, expcalc:, ExpPerMin,
- GuiControl, expcalc:, RunTime,
+ 
+ i := 6
+ 
+ Loop 6										;shift run time and exp/min down into history
+ {
+  j := i - 1
+  GuiControlGet, ExpPerMin%j%, expcalc:		;push the value in the edit box to it's variable
+  GuiControlGet, RunTime%j%, expcalc:		;push the value in the edit box to it's variable
+  GuiControl, expcalc:, ExpPerMin%i%, % ExpPerMin%j%
+  GuiControl, expcalc:, RunTime%i%, % RunTime%j%
+  i -= 1
+ }
  return
 }
 StopExp:
@@ -132,8 +168,18 @@ StopExp:
  
  elapsedTime := (A_TickCount - startTime) / 60000		;get the elapsed time in ms, then convert it to minutes
  roundedTime := Round(elapsedTime, 2)					;round the elapsed time in seconds down to 2 decimal places
- GuiControl, expcalc:, RunTime, %roundedTime%			;put the elapsed time in minutes in the proper edit box
+ GuiControl, expcalc:, RunTime1, %roundedTime%			;put the elapsed time in minutes in the proper edit box
 
+ return
+}
+HistoryExp:
+{
+ if(ExpHistoryIsShowing)
+	WinMove, Exp/Min Calculator, , , , , 95
+ else
+	WinMove, Exp/Min Calculator, , , , , 223
+	
+ ExpHistoryIsShowing := !ExpHistoryIsShowing
  return
 }
 ExitExp:
@@ -193,7 +239,7 @@ ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
 midx := (A_ScreenWidth - 320) / 2					;get the center of the screen
 Gui, expcalc:Show, , Exp/Min Calculator				;show the window for an instant so we can modify it
 WinSet, Style, -0x840000, Exp/Min Calculator		;remove the borders so it looks neat
-WinMove, Exp/Min Calculator, , % midx, 2, 327, 88	;resize and position the window at top center
+WinMove, Exp/Min Calculator, , % midx, 2, 327, 95	;resize and position the window at top center
 return
 
 
