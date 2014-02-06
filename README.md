@@ -14,9 +14,6 @@ You can adjust the tooltip timeout values from the system tray icon menu.
  
  
  
-Example of DPS ToolTips
+Example of DPS ToolTips and Exp/Min Calculator
 ![Imgur](http://i.imgur.com/2VIqWKF.png)
-
-
-Example of Exp/Min Calculator
 ![Imgur](http://i.imgur.com/MRIEeGp.png)
