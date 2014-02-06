@@ -16,9 +16,10 @@ Notes:
  
  
  
-Example of DPS ToolTips and Exp/Min Calculator
+Example of DPS ToolTips and 
 ![Imgur](http://i.imgur.com/2VIqWKF.png)
 
-Other
 
+
+Example of Exp/Min Calculator
 ![Imgur](http://i.imgur.com/MRIEeGp.png)
