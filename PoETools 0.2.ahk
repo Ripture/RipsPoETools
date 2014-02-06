@@ -7,7 +7,6 @@ return
 
 
 
-
 ; ------
 ; - Setup Global Variables
 ; ------
@@ -15,7 +14,6 @@ return
 setupGlobals()
 {global
 
-expTimerStarted := false			;variable tracking exp timer state
 TTTimeout := 2500					;tooltip timeout value in milliseconds (ms)
 }
 ;=--
@@ -58,12 +56,36 @@ Gui, expstop:+AlwaysOnTop
 
 
 ; ------
+; - Setup the System Tray Menu
+; ------
+;--=
+setupSysTray()
+{global
+
+Menu, Tray, NoStandard
+Menu, TTTimeoutMenu, Add, 5000ms, TTTimeoutChange5000
+Menu, TTTimeoutMenu, Add, 2500ms, TTTimeoutChange2500
+Menu, TTTimeoutMenu, Add, 1000ms, TTTimeoutChange1000
+Menu, TTTimeoutMenu, Add, Custom, TTTimeoutChange
+Menu, Tray, Add, Change Tooltip Timeout, :TTTimeoutMenu
+Menu, Tray, Add
+Menu, Tray, Add, Open Exp/Min Calculator, ExpMinCalc
+Menu, Tray, Add
+Menu, Tray, Add, Exit, SysTrayExit
+
+Menu, TTTimeoutMenu, Check, 2500ms			;check 2500ms timeout by default
+}
+;=--
+
+
+; ------
 ; - Exp/Min GUI Functions/Labels
 ; -
-; - Function: InitialExp runs every time the contents of the edit box "Initial Experience" are changed
-; - 		  FinalExp runs every time the contents of the edit box "Final Experience" are changed
-; -			  StartExp runs every time the button labeled "Start Timer" is clicked
-; -			  NextExp runs every time the button labeled "Next" is clicked
+; - Function: InitialExp pushes the contents of the edit box to it's variable every time the contents change
+; - 		  FinalExp pushes the contents of the edit box to it's variable every time the contents change
+; -			  StartExp saves a starting counter value, hides the gui and shows the "Stop Timer" button
+; -			  NextExp clears out all edit fields and moves the value in Final Experience to Initial Experience
+; - 		  StopExp hides the stop button, shows the exp calc GUI, gets a final counter value and calculates the difference
 ; ------
 ;--= 
 InitialExp:
@@ -121,32 +143,9 @@ return
 
 
 ; ------
-; - Setup the System Tray Menu
-; ------
-;--=
-setupSysTray()
-{global
-
-Menu, Tray, NoStandard
-Menu, TTTimeoutMenu, Add, 5000ms, TTTimeoutChange5000
-Menu, TTTimeoutMenu, Add, 2500ms, TTTimeoutChange2500
-Menu, TTTimeoutMenu, Add, 1000ms, TTTimeoutChange1000
-Menu, TTTimeoutMenu, Add, Custom, TTTimeoutChange
-Menu, Tray, Add, Change Tooltip Timeout, :TTTimeoutMenu
-Menu, Tray, Add
-Menu, Tray, Add, Open Exp/Min Calculator, ExpMinCalc
-Menu, Tray, Add
-Menu, Tray, Add, Exit, SysTrayExit
-
-Menu, TTTimeoutMenu, Check, 2500ms			;check 2500ms timeout by default
-}
-;=--
-
-
-; ------
 ; - System Tray Functions/Labels
 ; -
-; - Function: TTTimeoutChange changes the tooltip timeout in ms to user-specified value
+; - Function: TTTimeoutChange displays an input box for the user to change the tooltip timeout in ms
 ; - 		  TTTimeoutChange#### changes the tooltip timeout in ms to #### 
 ; -			  SysTrayExit exits the script when user clicks "exit"
 ; ------
@@ -190,9 +189,8 @@ return
 
 
 ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
-;get the center of the screen
-midx := (A_ScreenWidth - 320) / 2
 
+midx := (A_ScreenWidth - 320) / 2					;get the center of the screen
 Gui, expcalc:Show, , Exp/Min Calculator				;show the window for an instant so we can modify it
 WinSet, Style, -0x840000, Exp/Min Calculator		;remove the borders so it looks neat
 WinMove, Exp/Min Calculator, , % midx, 2, 327, 88	;resize and position the window at top center
