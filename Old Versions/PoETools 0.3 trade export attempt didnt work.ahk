@@ -74,6 +74,13 @@ Gui, expcalc:+AlwaysOnTop
 Gui, expstop:Add, Button, x0 y0 w100 h22 gStopExp, Stop Timer
 Gui, expstop:+AlwaysOnTop
 
+;-----
+;- Trading Post Generator GUI
+Gui, trade:Add, Text, x10 y5 w150 +Center gTradeMove, Click and drag here to move
+Gui, trade:Add, TreeView, x10 y50 w150 h175 vTradeItems
+Gui, trade:Add, Button, x10 y232 w150 h22 gTradeAddCat, Add Category
+Gui, trade:Add, Button, x10 y260 w150 h22 gTradeExport, Export To Clipboard
+Gui, trade:+AlwaysOnTop
 }
 ;=--
 
@@ -86,11 +93,15 @@ setupSysTray()
 {global
 
 Menu, Tray, NoStandard
+
 Menu, TTTimeoutMenu, Add, 5000ms, TTTimeoutChange5000
 Menu, TTTimeoutMenu, Add, 2500ms, TTTimeoutChange2500
 Menu, TTTimeoutMenu, Add, 1000ms, TTTimeoutChange1000
 Menu, TTTimeoutMenu, Add, Custom, TTTimeoutChange
+
 Menu, Tray, Add, Change Tooltip Timeout, :TTTimeoutMenu
+Menu, Tray, Add
+Menu, Tray, Add, Open Trading Post Gen, TradingPostGen
 Menu, Tray, Add
 Menu, Tray, Add, Open Exp/Min Calculator, ExpMinCalc
 Menu, Tray, Add
@@ -189,6 +200,38 @@ return
 
 
 ; ------
+; - Trade Post GUI Functions/Labels
+; -
+; ------
+;--=
+TradeMove:
+PostMessage, 0xA1, 2,,,A
+return
+
+TradeAddCat:
+InputBox, cat, Add Category, Input the name for the new category.
+TV_Add(cat)
+return
+
+TradeExport:
+ItemID := 0
+clipboard := "This is the headline message.`nIGN: CharName`n`n`n"
+Loop
+{
+ ItemID := TV_GetNext(ItemID, "Full")
+ If(!ItemID)
+    break
+	
+ ;check if item is a parent (category) or child (item)
+ ;if(isParent)
+ TV_GetText(ItemText, ItemID)
+ clipboard .= "[b]" . ItemText . "[/b]`n`n"
+ 
+}
+return
+;=--
+
+; ------
 ; - System Tray Functions/Labels
 ; -
 ; - Function: TTTimeoutChange displays an input box for the user to change the tooltip timeout in ms
@@ -221,7 +264,6 @@ Menu, TTTimeoutMenu, Uncheck, Custom
 return
 
 TTTimeoutChange:						;user clicks "Custom"
-
 TryAgain:
 InputBox, TTTimeout, Change Tooltip Timeout, Input the number of milliseconds (ms) to display the tooltip for.`n(0-100000), , , , , , , , 2500
 
@@ -234,10 +276,16 @@ Menu, TTTimeoutMenu, Check, Custom
 return
 
 
-ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
+TradingPostGen:
+Gui, trade:Show, , Trading Post Generator				;show the GUI window
+WinSet, Style, -0x840000, Trading Post Generator	;remove the borders so it looks neat
+WinMove, Trading Post Generator, , , , 178, 299			;resize and position the window at top center
+return
 
+
+ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
 midx := (A_ScreenWidth - 320) / 2					;get the center of the screen
-Gui, expcalc:Show, , Exp/Min Calculator				;show the window for an instant so we can modify it
+Gui, expcalc:Show, , Exp/Min Calculator				;show the GUI window
 WinSet, Style, -0x840000, Exp/Min Calculator		;remove the borders so it looks neat
 WinMove, Exp/Min Calculator, , % midx, 2, 327, 95	;resize and position the window at top center
 return
@@ -258,6 +306,33 @@ return
 OnClipboardChange:
 IfInString, clipboard, Rarity					;only do any of this if an item is what appeared in the clipboard
 {
+
+Gui, trade:Default								;set the default GUI to the trade window before we see if we're building a trade list
+If(TV_GetCount() > 0)							;if there exists a TreeView with greater than zero items, we probably intend to add to trade list, not parse
+{
+ if(TV_GetSelection() > 0)						;only add the item if the user actually selected anything
+ {
+  ;the format of an item link is as follows:
+  ;
+  ;Stash Linking ---- [linkItem location="Stash1" league="Domination" x="0" y="0"]
+  ;		"location" is "Stash#" where # is the stash tab number
+  ;		"league" is the league the character is in
+  ;		"x" and "y" define the x,y coordinate in the stash grid of the item's top-left cell ((0,0) is top left)
+  ;
+  ;Inventory linking ---- [linkItem location="MainInventory" character="Name" x="0" y="0"]
+  ;		"location" can be "MainInventory", "Weapon", "Helm", "BodyArmor", "Gloves", "Boots", "Belt", "Ring", "Ring2", "Amulet", "Flask"
+  ;		"character" is the character name
+  ;		"x" and "y" define the x,y coordinate in the inventory grid of the item's top-left cell ((0,0) is top left)
+  ;			NOTE: only "MainInventory" and "Flask" can have non-zero x and y.  (Flasks go (0,0),(1,0),(2,0) etc)
+
+  ;so first, we figure out where the mouse cursor is and use that to generate an x and a y
+  ;depending also on where the mouse is, we figure out if it's in a stash tab
+  TV_Add(clipboard, TV_GetSelection())
+  TV_Modify(TV_GetSelection(), "+Expand")
+ }
+ return
+}
+
 PhysDMGMax = 0
 PhysDMGMin = 0
 FireDMGMin = 0
