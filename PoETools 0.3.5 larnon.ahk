@@ -30,29 +30,29 @@ setupGUIs()
 ;-----
 ;- Experience Calc GUI
 Gui, expcalc:Font, s8, Courier New
-Gui, expcalc:Add, Text, x0  y34 w320 h15 +Center, ____________________________________________
-Gui, expcalc:Add, Text, x5  y2  w80 +Center, Initial Exp
-Gui, expcalc:Add, Edit, x5  y20 w80 h20 vInitialExp gInitialExp
-Gui, expcalc:Add, Text, x88 y22 , -
-Gui, expcalc:Add, Text, x98 y2  w80 +Center, Final Exp
-Gui, expcalc:Add, Edit, x98 y20 w80 h20 vFinalExp gFinalExp
+Gui, expcalc:Add, Text, x5  y30 w275 h15 +Center, ____________________________________________
+Gui, expcalc:Add, Text, x5  y2  w70 +Center, Initial Exp
+Gui, expcalc:Add, Edit, x5  y18 w73 h18 vInitialExp gInitialExp
+Gui, expcalc:Add, Text, x80 y21 , -
+Gui, expcalc:Add, Text, x89 y2  w70 +Center, Final Exp
+Gui, expcalc:Add, Edit, x89 y18 w73 h18 vFinalExp gFinalExp
 
-Gui, expcalc:Add, Button, x185 y19 w85 h22 vStartExp gStartExp, Start Timer
-Gui, expcalc:Add, Button, x275 y19 w40 h22 vNextExp  gNextExp, Next
-Gui, expcalc:Add, Button, x300 y0 w15 h16 vExitExp  gExitExp, X
-Gui, expcalc:Add, Button, x138 y78 w50 h10 gHistoryExp
+Gui, expcalc:Add, Button, x172 y2 w40 h34 vStartExp gStartExp, Start Timer
+Gui, expcalc:Add, Button, x220 y2 w40 h34 vNextExp  gNextExp, Next Run
+Gui, expcalc:Add, Button, x268 y2 w15 h16 vExitExp  gExitExp, X
+Gui, expcalc:Add, Button, x118 y72 w50 h10 gHistoryExp
 
 Loop 6					;create this many *total* run entries (current + history)
 {
  if(A_Index = 1)		;if this is the first one, create it in the initial spot
  {
-  yedit := 55
-  ytext := 57
+  yedit := 48
+  ytext := 50
  }
  else if (A_Index = 2)	;the second is 50 units below that 
  {
-  yedit += 36
-  ytext += 36
+  yedit += 38
+  ytext += 38
  }
  else					;the rest are in 50 unit increments
  {
@@ -60,18 +60,18 @@ Loop 6					;create this many *total* run entries (current + history)
   ytext += 25
  }
  
- Gui, expcalc:Add, Text, x5  y%ytext% w105 +Center, Run Time (mins)
- Gui, expcalc:Add, Edit, x111 y%yedit% w50 h20 vRunTime%A_Index%
+ Gui, expcalc:Add, Text, x2  y%ytext% w105 +Center, Run Time (mins)
+ Gui, expcalc:Add, Edit, x105 y%yedit% w47 h20 vRunTime%A_Index%
 
- Gui, expcalc:Add, Text, x176 y%ytext% w60 +Center, Exp/Min
- Gui, expcalc:Add, Edit, x234 y%yedit% w80 h20 vExpPerMin%A_Index%
+ Gui, expcalc:Add, Text, x155 y%ytext% w60 +Center, Exp/Min
+ Gui, expcalc:Add, Edit, x212 y%yedit% w68 h20 vExpPerMin%A_Index%
 }
 
 Gui, expcalc:+AlwaysOnTop
 
 ;-----
 ;- Experience Calc Timer Stop Button GUI
-Gui, expstop:Add, Button, x0 y0 w100 h22 gStopExp, Stop Timer
+Gui, expstop:Add, Button, x0 y0 w80 h20 gStopExp, Stop Timer
 Gui, expstop:+AlwaysOnTop
 }
 ;=--
@@ -138,7 +138,7 @@ StartExp:
  midx := (A_ScreenWidth - 107) / 2						;get center screen
  Gui, expstop:Show, , Exp Timer Stop Button				;show the window for an instant so we can modify it
  WinSet, Style, -0x840000, Exp Timer Stop Button		;remove the borders so it looks neat
- WinMove, Exp Timer Stop Button, , % midx, 2, 107, 29	;resize and position the window at top center
+ WinMove, Exp Timer Stop Button, , % midx, 2, 108, 33	;resize and position the window at top center
   
  startTime := A_TickCount
 
@@ -176,9 +176,9 @@ StopExp:
 HistoryExp:
 {
  if(ExpHistoryIsShowing)
-	WinMove, Exp/Min Calculator, , , , , 95
+	WinMove, Exp/Min Calculator, , , , , 110
  else
-	WinMove, Exp/Min Calculator, , , , , 223
+	WinMove, Exp/Min Calculator, , , , , 269
 	
  ExpHistoryIsShowing := !ExpHistoryIsShowing
  return
@@ -241,10 +241,10 @@ TTTimeoutChange:						;user clicks "Custom"
 }
 ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
 {
- midx := (A_ScreenWidth - 320) / 2					;get the center of the screen
+ midx := (A_ScreenWidth - 365) / 2					;get the center of the screen
  Gui, expcalc:Show, , Exp/Min Calculator			;show the GUI window
  WinSet, Style, -0x840000, Exp/Min Calculator		;remove the borders so it looks neat
- WinMove, Exp/Min Calculator, , % midx, 2, 327, 95	;resize and position the window at top center
+ WinMove, Exp/Min Calculator, , % midx, 2, 365, 110	;resize and position the window at top center
  return
 }
 SysTrayExit:							;user clicks "Exit"
