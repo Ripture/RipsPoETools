@@ -108,9 +108,13 @@ Menu, Tray, Add, Exit, SysTrayExit
 ;-- Set Defaults
 ;- 
 Menu, TTTimeoutMenu, Check, 2500ms						;check 2500ms timeout by default
-Menu, ItemTooltipOptions, Check, Show Itemized DPS		;check show itemized dps by default
-Menu, ItemTooltipOptions, Check, Show Attack Speed		;check show itemized dps by default
-Menu, ItemTooltipOptions, Check, Show Item Level		;check show itemized dps by default
+
+if(ItemTTShowItemized)
+   Menu, ItemTooltipOptions, Check, Show Itemized DPS		;check show itemized dps by default
+if(ItemTTShowAttackSpd)
+   Menu, ItemTooltipOptions, Check, Show Attack Speed		;check show itemized dps by default
+if(ItemTTShowILevel)
+   Menu, ItemTooltipOptions, Check, Show Item Level		;check show itemized dps by default
 }
 ;=--
 
