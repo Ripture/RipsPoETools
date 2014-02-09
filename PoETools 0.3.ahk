@@ -3,11 +3,6 @@
 setupGlobals()
 setupGUIs()
 setupSysTray()
-
-FileRead, File, %A_ScriptFullPath%
-StringReplace, File, File, ItemTTShowItemized := true, bloop
-FileDelete, %A_ScriptFullPath%
-FileAppend, %File%, PoETools 0.3
 return
 
 
@@ -104,7 +99,7 @@ Menu, ItemTooltipOptions, Add, Show Itemized DPS, ShowItemized
 Menu, ItemTooltipOptions, Add, Show Attack Speed, ShowAttackSpd
 Menu, ItemTooltipOptions, Add, Show Item Level, ShowItemLevel
 
-Menu, Tray, Add, Item Tooltip Options, :ItemTooltipOptions
+Menu, Tray, Add, ItemTooltipOptions, :ItemTooltipOptions
 Menu, Tray, Add
 Menu, Tray, Add, Open Exp/Min Calculator, ExpMinCalc
 Menu, Tray, Add
