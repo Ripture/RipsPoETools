@@ -14,7 +14,10 @@ return
 setupGlobals()
 {global
 
-ExpHistoryShowing := false			;track whether or not the history is showingu
+ExpHistoryShowing := false			;track whether or not the history is showing
+ItemTTShowItemized := true			;show itemized dps by default
+ItemTTShowAttackSpd := true			;show attack speed by default
+ItemTTShowILevel := true			;show item level by default
 TTTimeout := 2500					;tooltip timeout value in milliseconds (ms)
 }
 ;=--
@@ -91,13 +94,23 @@ Menu, TTTimeoutMenu, Add, 2500ms, TTTimeoutChange2500
 Menu, TTTimeoutMenu, Add, 1000ms, TTTimeoutChange1000
 Menu, TTTimeoutMenu, Add, Custom, TTTimeoutChange
 
-Menu, Tray, Add, Change Tooltip Timeout, :TTTimeoutMenu
+Menu, ItemTooltipOptions, Add, Change Tooltip Timeout, :TTTimeoutMenu
+Menu, ItemTooltipOptions, Add, Show Itemized DPS, ShowItemized
+Menu, ItemTooltipOptions, Add, Show Attack Speed, ShowAttackSpd
+Menu, ItemTooltipOptions, Add, Show Item Level, ShowItemLevel
+
+Menu, Tray, Add, ItemTooltipOptions, :ItemTooltipOptions
 Menu, Tray, Add
 Menu, Tray, Add, Open Exp/Min Calculator, ExpMinCalc
 Menu, Tray, Add
 Menu, Tray, Add, Exit, SysTrayExit
 
-Menu, TTTimeoutMenu, Check, 2500ms			;check 2500ms timeout by default
+;-- Set Defaults
+;- 
+Menu, TTTimeoutMenu, Check, 2500ms						;check 2500ms timeout by default
+Menu, ItemTooltipOptions, Check, Show Itemized DPS		;check show itemized dps by default
+Menu, ItemTooltipOptions, Check, Show Attack Speed		;check show itemized dps by default
+Menu, ItemTooltipOptions, Check, Show Item Level		;check show itemized dps by default
 }
 ;=--
 
@@ -247,6 +260,24 @@ ExpMinCalc:								;user clicks "Open Exp/Min Calculator"
  WinMove, Exp/Min Calculator, , % midx, 2, 327, 95	;resize and position the window at top center
  return
 }
+ShowItemized:							;user clicks "Show Itemized DPS"
+{
+ Menu, ItemTooltipOptions, ToggleCheck, Show Itemized DPS	;toggle check show itemized
+ ItemTTShowItemized := !ItemTTShowItemized
+ return
+}
+ShowAttackSpd:							;user clicks "Show Attack Speed"
+{
+ Menu, ItemTooltipOptions, ToggleCheck, Show Attack Speed	;toggle check show itemized dps
+ ItemTTShowAttackSpd := ! ItemTTShowAttackSpd
+ return
+}
+ShowItemLevel:							;user clicks "Show Item Level"
+{
+ Menu, ItemTooltipOptions, ToggleCheck, Show Item Level		;toggle check show itemized dps
+ ItemTTShowILevel := !ItemTTShowILevel
+ return
+}
 SysTrayExit:							;user clicks "Exit"
 {
  ExitApp
@@ -264,14 +295,16 @@ SysTrayExit:							;user clicks "Exit"
 OnClipboardChange:
 IfInString, clipboard, Rarity					;only do any of this if an item is what appeared in the clipboard
 {
-PhysDMGMax = 0
 PhysDMGMin = 0
+PhysDMGMax = 0
 FireDMGMin = 0
 FireDMGMax = 0
 ColdDMGMin = 0
 ColdDMGMax = 0
-LightDMGMax = 0
 LightDMGMin = 0
+LightDMGMax = 0
+AttackSPD = 0
+ItemLevel = 0
 
 
 ;parse the clipboard data
@@ -295,8 +328,6 @@ Loop, parse, clipboard, `n
   
   ;MsgBox %A_LoopField%`nColon At: %ColonPos%`nHyphen At: %HyphenPos%`nParenth At: %ParenthPos%`nLength: %Length%`n>%PhysDMGMin%< - >%PhysDMGMax%<
   
-  GuiControl, main:, PhysDMG, %PhysDMGMin% - %PhysDMGMax%
-  
   Continue
  }
 
@@ -314,9 +345,7 @@ Loop, parse, clipboard, `n
    StringMid, FireDMGMax, A_LoopField, HyphenPos + 2, FPos - HyphenPos - 2
   
    ;MsgBox %A_LoopField%`nHyphen At: %HyphenPos%`nF Pos: %FPos%`nLength: %Length%`n>%FireDMGMin%< - >%FireDMGMax%<
- 
-   GuiControl, main:, FireDMG, %FireDMGMin% - %FireDMGMax%
-   
+
    Continue
   }
  }
@@ -336,8 +365,6 @@ Loop, parse, clipboard, `n
   
    ;MsgBox %A_LoopField%`nHyphen At: %HyphenPos%`nC Pos: %CPos%`nLength: %Length%`n>%ColdDMGMin%< - >%ColdDMGMax%<
  
-   GuiControl, main:, ColdDMG, %ColdDMGMin% - %ColdDMGMax%
-   
    Continue
   }
  }
@@ -357,8 +384,6 @@ Loop, parse, clipboard, `n
   
    ;MsgBox %A_LoopField%`nHyphen At: %HyphenPos%`nL Pos: %LPos%`nLength: %Length%`n>%LightDMGMin%< - >%LightDMGMax%<
  
-   GuiControl, main:, LightDMG, %LightDMGMin% - %LightDMGMax%
-   
    Continue
   }
  }
@@ -378,9 +403,20 @@ Loop, parse, clipboard, `n
 	StringMid, AttackSPD, A_LoopField, ColonPos + 3, Length - ColonPos - 3
 
   ;MsgBox %A_LoopField%`nColon At: %ColonPos%`nLength: %Length%`n>%AttackSPD%<
+
+  Continue
+ }
  
-  GuiControl, main:, AttackSPD, %AttackSPD%
+ IfInString, A_LoopField, Itemlevel:			;get the line containing the weapon's item level
+ {
+  StringGetPos, ColonPos, A_LoopField, :		;identify location of key separators to help pull apart the string
+  StringLen, Length, A_LoopField
   
+												;pull out the item level
+  StringMid, ItemLevel, A_LoopField, ColonPos + 3, 2
+
+  ;MsgBox %A_LoopField%`nColon At: %ColonPos%`nLength: %Length%`n>%ItemLevel%<
+ 
   Continue
  }
 }
@@ -395,21 +431,41 @@ TotalDPS := PhysDPS + FireDPS + ColdDPS + LightDPS
 
 ;-- build the tooltip text 
 	text := "/------------------\`n"
-		  . "| Total DPS: " . TotalDPS . "`t   |`n"
-		  . "|`t`t   |`n"
-		  . "| Phys DPS:  " . PhysDPS .  "`t   |`n"
-if(FireDPS > 0)
+	
+if(TotalDPS > 0)
+{
+    text .= "| Total DPS: " . TotalDPS . "`t   |`n"
+	
+ if(ItemTTShowItemized)
+ {
+	text .= "|`t`t   |`n"
+	      . "| Phys DPS:  " . PhysDPS .  "`t   |`n"
+ if(FireDPS > 0)
 	text .= "| Fire DPS:  " . FireDPS .  "`t   |`n"
 	
-if(ColdDPS > 0)
+ if(ColdDPS > 0)
 	text .= "| Fire DPS:  " . ColdDPS .  "`t   |`n"
 	
-if(LightDPS > 0)
+ if(LightDPS > 0)
 	text .= "| Light DPS: " . LightDPS . "`t   |`n"
 	
+ }
+ if(ItemTTShowILevel || ItemTTShowAttackSpd)
+    text .= "|`t`t   |`n"
+}
+if(ItemTTShowAttackSpd && AttackSPD > 0)
+{
+	text .= "| AttackSPD: " . AttackSPD . "  |`n"
+
+ if(ItemTTShowILevel)
 	text .= "|`t`t   |`n"
-	      . "| AttackSPD: " . AttackSPD . "  |`n"
-	      . "\------------------/`n"
+}
+if(ItemTTShowILevel)
+{
+	
+	text .= "| iLevel:    " . ItemLevel . "    |`n"
+}
+	text .= "\------------------/`n"
 
 
 ;-- some trickery to change the font of the tooltip
