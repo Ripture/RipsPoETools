@@ -433,12 +433,17 @@ LightDPS := ((LightDMGMin + LightDMGMax) / 2 ) * AttackSPD
 
 TotalDPS := PhysDPS + FireDPS + ColdDPS + LightDPS
 
+
 ;-- build the tooltip text 
+
 	text := "/------------------\`n"
 	
 if(TotalDPS > 0)
 {
-    text .= "| Total DPS: " . TotalDPS . "`t   |`n"
+ if(TotalDPS < 100)				;special formatting if dps is 2 digits or 3 digits
+    text .= "| Total DPS: " . TotalDPS . "    |`n"
+ else
+    text .= "| Total DPS: " . TotalDPS . "   |`n"
 	
  if(ItemTTShowItemized)
  {
@@ -469,6 +474,7 @@ if(ItemTTShowILevel)
 	
 	text .= "| iLevel:    " . ItemLevel . "    |`n"
 }
+
 	text .= "\------------------/`n"
 
 
