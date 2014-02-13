@@ -1,10 +1,26 @@
 #NoEnv
-
 setupGlobals()
 setupGUIs()
 setupSysTray()
 return
 
+
+; ------
+; - Hotkeys
+; ------
+;--=
+^r::
+;send /remaining
+IfWinActive, Path of Exile				;if PoE is the active window
+   SendInput {Enter}/remaining{Enter}	;hit enter, type "/remaining" and hit enter
+return
+
+^s::
+;send /oos
+IfWinActive, Path of Exile				;if PoE is the active window
+   SendInput {Enter}/oos{Enter}	;hit enter, type "/oos" and hit enter
+return
+;=--
 
 
 ; ------
